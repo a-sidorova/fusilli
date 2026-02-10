@@ -108,7 +108,7 @@ inline ErrorObject Handle::createCPUDevice() {
 
   iree_hal_device_t *rawDevice = nullptr;
   FUSILLI_CHECK_ERROR(iree_runtime_instance_try_create_default_device(
-      instance_.get(), iree_make_cstring_view(kHalDriver.at(backend_)),
+      instance_.get(), iree_make_cstring_view(halDriver().at(backend_)),
       &rawDevice));
 
   // Wrap the raw device ptr with a unique_ptr and custom deleter
@@ -140,7 +140,7 @@ inline ErrorObject Handle::createAMDGPUDevice(int deviceId, uintptr_t stream) {
   iree_hal_hip_driver_options_initialize(&driverOptions);
   iree_hal_driver_t *driver;
   FUSILLI_CHECK_ERROR(iree_hal_hip_driver_create(
-      iree_make_cstring_view(kHalDriver.at(backend_)), &driverOptions, &params,
+      iree_make_cstring_view(halDriver().at(backend_)), &driverOptions, &params,
       iree_allocator_system(), &driver));
 
   // Create device.
@@ -262,10 +262,10 @@ Graph::execute(const Handle &handle,
   FUSILLI_RETURN_ERROR_IF(session_ == nullptr, ErrorCode::NotCompiled,
                           "Graph must be compiled before being executed");
 
-  if (!kBackendExecuteAsync.contains(handle.getBackend())) // C++ 20
+  if (!backendExecuteAsync().contains(handle.getBackend())) // C++ 20
     return ErrorObject(ErrorCode::InternalError,
                        "Graph::execute got an unknown backend");
-  bool executeAsync = kBackendExecuteAsync.at(handle.getBackend());
+  bool executeAsync = backendExecuteAsync().at(handle.getBackend());
 
   // Call `module.main` for synchronous execution and `module.main$async` for
   // asynchronous execution.

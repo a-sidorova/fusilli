@@ -197,14 +197,6 @@ if(FUSILLI_ENABLE_ASAN)
   if (SANITIZE_RECOVER_ADDRESS_SUPPORTED)
     list(APPEND FUSILLI_SANITIZER_COMPILE_FLAGS -fsanitize-recover=address)
   endif()
-
-  # Disable ASAN global variable instrumentation to avoid ODR violation false
-  # positives when linking with non-ASAN-instrumented libraries (e.g., IREE).
-  # This is needed because IREE_ENABLE_ASAN may be OFF while FUSILLI_ENABLE_ASAN is ON.
-  check_cxx_compiler_flag("-mllvm -asan-globals=0" ASAN_GLOBALS_FLAG_SUPPORTED)
-  if (ASAN_GLOBALS_FLAG_SUPPORTED)
-    list(APPEND FUSILLI_SANITIZER_COMPILE_FLAGS -mllvm -asan-globals=0)
-  endif()
 endif()
 
 # Enable AMD GPU build if requested

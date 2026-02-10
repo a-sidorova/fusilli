@@ -71,9 +71,9 @@ namespace fusilli {
 // The prefix is generally what attribute this refers to (e.g.
 // padding, stride, dilation etc.) and the suffix is the node's
 // unique name (for SSA disambiguation).
-inline std::string getListOfIntOpsAsm(const std::vector<int64_t> &listOfInts,
-                                      const std::string &prefix,
-                                      const std::string &suffix) {
+std::string getListOfIntOpsAsm(const std::vector<int64_t> &listOfInts,
+                               const std::string &prefix,
+                               const std::string &suffix) {
   std::ostringstream oss;
   std::vector<std::string> ssaValueNames;
 
@@ -120,9 +120,9 @@ inline std::string getListOfIntOpsAsm(const std::vector<int64_t> &listOfInts,
 //
 // The suffix is used to ensure unique SSA names when the same tensor is used
 // by multiple different operations in a graph.
-inline std::string getPermuteOpsAsm(const std::shared_ptr<TensorAttr> &tensor,
-                                    const std::string &prefix,
-                                    const std::string &suffix, bool isInput) {
+std::string getPermuteOpsAsm(const std::shared_ptr<TensorAttr> &tensor,
+                             const std::string &prefix,
+                             const std::string &suffix, bool isInput) {
   std::ostringstream oss;
 
   // Get permute order based on direction.
@@ -147,7 +147,7 @@ inline std::string getPermuteOpsAsm(const std::shared_ptr<TensorAttr> &tensor,
   std::string toType = tensor->getTensorTypeAsm(
       /*isValueTensor=*/true, /*useLogicalDims=*/isInput);
 
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
     {0} = torch.aten.permute {1}, {2} : {3}, !torch.list<int> -> {4}
   )";
   oss << std::format(schema,
@@ -221,7 +221,7 @@ inline std::string TensorAttr::getTensorTypeAsm(bool isValueTensor,
       // between_fn:
       [&] { oss << ","; });
   oss << "],";
-  oss << kDataTypeToMlirTypeAsm.at(getDataType());
+  oss << dataTypeToMlirTypeAsm().at(getDataType());
   oss << ">";
   return oss.str();
 }
@@ -316,7 +316,7 @@ inline std::string Graph::getResultNamesAndTypesAsm() const {
 // schema, take extra caution about double bracing the curly brackets
 // (refer to the comments at the top of this file for details).
 inline std::string Graph::emitNodePreAsm() const {
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
 module @module {{
   func.func @main({0}, {1}) attributes {{torch.assume_strict_symbolic_shapes}} {{
   )";
@@ -357,7 +357,7 @@ inline std::string Graph::emitNodePostAsm() const {
         return output->isVirtual();
       });
 
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
     {0}
 
     return
@@ -492,7 +492,7 @@ inline std::string ConvFPropNode::emitNodePreAsm() const {
   //      AnyTorchOptionalTensorType:$result
   //    );
   //   ...
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
     %bias_{0} = torch.constant.none
     %transposed_{0} = torch.constant.bool false
     %output_padding_{0} = torch.prim.ListConstruct  : () -> !torch.list<int>
@@ -639,14 +639,14 @@ inline std::string ConvWGradNode::getPermuteEmptyWOpsAsm() const {
   // Use `torch.aten.empty.memory_format` to create an empty tensor. It is the
   // simplest op to create a new tensor without having a pre-existing one
   // (then `torch.aten.empty_like` could be used).
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
     %none_DW_{0} = torch.constant.none
     %dtype_DW_{0} = torch.constant.int {3}
     %empty_w_{0} = torch.aten.empty.memory_format {1}, %dtype_DW_{0}, %none_DW_{0}, %none_DW_{0}, %none_DW_{0}, %none_DW_{0} : !torch.list<int>, !torch.int, !torch.none, !torch.none, !torch.none, !torch.none -> {2}
   )";
 
   torch_upstream::ScalarType dataType =
-      kDataTypeToTorchType.at(dwT->getDataType());
+      dataTypeToTorchType().at(dwT->getDataType());
   std::string output =
       std::format(schema,
                   suffix,                      // {0}
@@ -660,7 +660,7 @@ inline std::string ConvWGradNode::getPermuteEmptyWOpsAsm() const {
 }
 
 inline std::string ConvWGradNode::emitNodePreAsm() const {
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
     %bias_{0} = torch.constant.none
     %transposed_{0} = torch.constant.bool false
     %output_padding_{0} = torch.prim.ListConstruct  : () -> !torch.list<int>
@@ -802,14 +802,14 @@ inline std::string ConvDGradNode::getPermuteEmptyXOpsAsm() const {
   // Use `torch.aten.empty.memory_format` to create an empty tensor. It is the
   // simplest op to create a new tensor without having a pre-existing one
   // (then `torch.aten.empty_like` could be used).
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
     %none_DX_{0} = torch.constant.none
     %dtype_DX_{0} = torch.constant.int {3}
     %empty_x_{0} = torch.aten.empty.memory_format {1}, %dtype_DX_{0}, %none_DX_{0}, %none_DX_{0}, %none_DX_{0}, %none_DX_{0} : !torch.list<int>, !torch.int, !torch.none, !torch.none, !torch.none, !torch.none -> {2}
   )";
 
   torch_upstream::ScalarType dataType =
-      kDataTypeToTorchType.at(dxT->getDataType());
+      dataTypeToTorchType().at(dxT->getDataType());
   std::string output =
       std::format(schema,
                   suffix,                      // {0}
@@ -823,7 +823,7 @@ inline std::string ConvDGradNode::getPermuteEmptyXOpsAsm() const {
 }
 
 inline std::string ConvDGradNode::emitNodePreAsm() const {
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
     %bias_{0} = torch.constant.none
     %transposed_{0} = torch.constant.bool false
     %output_padding_{0} = torch.prim.ListConstruct  : () -> !torch.list<int>
@@ -1011,7 +1011,7 @@ inline std::string LayerNormNode::emitNodePreAsm() const {
         layernormAttr.getINV_VARIANCE(), "permute_inv_variance",
         uniqueSSASuffix, /*isInput=*/false);
 
-    constexpr std::string_view schema = R"(
+    static constexpr char schema[] = R"(
       {0}
       {1}
       {2}
@@ -1039,7 +1039,7 @@ inline std::string LayerNormNode::emitNodePreAsm() const {
     );
   }
 
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
     {1}
     {2}
     {3}
@@ -1106,7 +1106,7 @@ inline std::string MatmulNode::getResultTypesAsm() const {
 }
 
 inline std::string MatmulNode::emitNodePreAsm() const {
-  constexpr std::string_view schema = R"(
+  static constexpr char schema[] = R"(
     {0}
     {1}
     {2} = torch.aten.matmul {3} : {4} -> {5}
@@ -1345,7 +1345,7 @@ inline std::string ReductionNode::emitNodePreAsm() const {
 
   switch (reductionAttr.getMode()) {
   case ReductionAttr::Mode::SUM: {
-    constexpr std::string_view schema = R"(
+    static constexpr char schema[] = R"(
     {0}
     {1}
     %keepdim_{2} = torch.constant.bool true
@@ -1366,7 +1366,7 @@ inline std::string ReductionNode::emitNodePreAsm() const {
     );
   }
   case ReductionAttr::Mode::MIN: {
-    constexpr std::string_view schema = R"(
+    static constexpr char schema[] = R"(
     {0}
     {1}
     %keepdim_{2} = torch.constant.bool true
@@ -1386,7 +1386,7 @@ inline std::string ReductionNode::emitNodePreAsm() const {
     );
   }
   case ReductionAttr::Mode::MAX: {
-    constexpr std::string_view schema = R"(
+    static constexpr char schema[] = R"(
     {0}
     {1}
     %keepdim_{2} = torch.constant.bool true
