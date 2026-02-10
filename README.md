@@ -263,7 +263,13 @@ ctest --test-dir build
 
 To customize AddressSanitizer behavior at runtime, use the `ASAN_OPTIONS` environment variable:
 ```shell
-ASAN_OPTIONS=detect_leaks=1:halt_on_error=0 ctest --test-dir build
+ASAN_OPTIONS=detect_leaks=1:halt_on_error=0 LSAN_OPTIONS=suppressions=build_tools/sanitizers/lsan_suppressions.txt ctest --test-dir build
+```
+
+To make AddressSanitizer symbolize its output you need to set the `ASAN_SYMBOLIZER_PATH` environment variable
+to point to the llvm-symbolizer binary (or make sure llvm-symbolizer is in your `$PATH`):
+```shell
+ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer ...
 ```
 
 > [!NOTE]

@@ -145,9 +145,14 @@ inline ErrorObject Handle::createAMDGPUDevice(int deviceId, uintptr_t stream) {
 
   // Create device.
   iree_hal_device_t *rawDevice = nullptr;
-  FUSILLI_CHECK_ERROR(iree_hal_driver_create_device_by_id(
+  iree_status_t deviceStatus = iree_hal_driver_create_device_by_id(
       driver, HIP_DEVICE_ID_TO_IREE_DEVICE_ID(deviceId), /*param_count=*/0,
-      /*params=*/nullptr, iree_allocator_system(), &rawDevice));
+      /*params=*/nullptr, iree_allocator_system(), &rawDevice);
+
+  // Release the driver now that the device has been created.
+  iree_hal_driver_release(driver);
+
+  FUSILLI_CHECK_ERROR(deviceStatus);
 
   // Wrap the raw device ptr with a unique_ptr and custom deleter
   // for lifetime management.
@@ -355,6 +360,10 @@ Graph::execute(const Handle &handle,
       iree_vm_ref_t waitFenceRef = iree_hal_fence_move_ref(waitFence);
       FUSILLI_CHECK_ERROR(
           iree_vm_list_push_ref_move(call.inputs, &waitFenceRef));
+<<<<<<< HEAD
+=======
+      iree_hal_fence_release(waitFence);
+>>>>>>> 82c7d73 ([Fusilli] Fixed remaining asan/lsan errors)
     }
     // Create dummy signal fence (tells downstream consumers that kernel has
     // ran) that's already completed.
@@ -366,6 +375,10 @@ Graph::execute(const Handle &handle,
       iree_vm_ref_t signalFenceRef = iree_hal_fence_move_ref(signalFence);
       FUSILLI_CHECK_ERROR(
           iree_vm_list_push_ref_move(call.inputs, &signalFenceRef));
+<<<<<<< HEAD
+=======
+      iree_hal_fence_release(signalFence);
+>>>>>>> 82c7d73 ([Fusilli] Fixed remaining asan/lsan errors)
     }
   }
 
