@@ -42,30 +42,39 @@ enum class Backend : uint8_t {
   AMDGPU,
 };
 
-static const std::unordered_map<Backend, std::string> kBackendToStr = {
-    {Backend::CPU, "CPU"},
-    {Backend::AMDGPU, "AMDGPU"},
-};
+inline const std::unordered_map<Backend, std::string> &backendToStr() {
+  static const std::unordered_map<Backend, std::string> map = {
+      {Backend::CPU, "CPU"},
+      {Backend::AMDGPU, "AMDGPU"},
+  };
+  return map;
+}
 
-static const std::unordered_map<Backend, bool> kBackendExecuteAsync = {
-    {Backend::CPU, false},
-    {Backend::AMDGPU, true},
-};
+inline const std::unordered_map<Backend, bool> &backendExecuteAsync() {
+  static const std::unordered_map<Backend, bool> map = {
+      {Backend::CPU, false},
+      {Backend::AMDGPU, true},
+  };
+  return map;
+}
 
 // Stream operator for Backend.
 inline std::ostream &operator<<(std::ostream &os, const Backend &backend) {
-  if (kBackendToStr.contains(backend)) // C++20
-    os << kBackendToStr.at(backend);
+  if (backendToStr().contains(backend)) // C++20
+    os << backendToStr().at(backend);
   else
     os << "UNKNOWN_BACKEND";
   return os;
 }
 
 // Map from backend to IREE HAL driver name.
-static const std::unordered_map<Backend, const char *> kHalDriver = {
-    {Backend::CPU, "local-task"},
-    {Backend::AMDGPU, "hip"},
-};
+inline const std::unordered_map<Backend, const char *> &halDriver() {
+  static const std::unordered_map<Backend, const char *> map = {
+      {Backend::CPU, "local-task"},
+      {Backend::AMDGPU, "hip"},
+  };
+  return map;
+}
 
 // Maps GPU marketing name to IREE SKU target name.
 // Returns empty string if not recognized.

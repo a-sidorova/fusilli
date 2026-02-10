@@ -27,12 +27,15 @@ enum class NormFwdPhase : uint8_t {
   INFERENCE
 };
 
-inline const std::unordered_map<NormFwdPhase, std::string> kNormFwdPhaseToStr =
-    {
-        {NormFwdPhase::NOT_SET, "NOT_SET"},
-        {NormFwdPhase::TRAINING, "TRAINING"},
-        {NormFwdPhase::INFERENCE, "INFERENCE"},
-};
+inline const std::unordered_map<NormFwdPhase, std::string> &
+normFwdPhaseToStr() {
+  static const std::unordered_map<NormFwdPhase, std::string> map = {
+      {NormFwdPhase::NOT_SET, "NOT_SET"},
+      {NormFwdPhase::TRAINING, "TRAINING"},
+      {NormFwdPhase::INFERENCE, "INFERENCE"},
+  };
+  return map;
+}
 
 } // namespace fusilli
 

@@ -29,7 +29,7 @@ static std::string generateName(PointwiseAttr::Mode mode, DataType type,
                                 const std::vector<int64_t> &dim) {
   std::string name =
       std::format("pointwise_{}_dt{}_in0", PointwiseAttr::kModeToStr.at(mode),
-                  kDataTypeToMlirTypeAsm.at(type));
+                  dataTypeToMlirTypeAsm().at(type));
   for (const auto &d : dim) {
     name += std::format("_{}", d);
   }

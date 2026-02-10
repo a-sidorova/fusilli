@@ -239,11 +239,11 @@ static ErrorObject benchmarkMatmul(const MatmulOptions &opts, DataType aType,
       "benchmark_matmul_b{}_m{}_n{}_k{}_transA{}_transB{}_bias{}_atype{}_"
       "btype{}_outtype{}",
       opts.b, opts.m, opts.n, opts.k, opts.transA, opts.transB, opts.bias,
-      kDataTypeToMlirTypeAsm.at(aType), kDataTypeToMlirTypeAsm.at(bType),
-      kDataTypeToMlirTypeAsm.at(outType));
+      dataTypeToMlirTypeAsm().at(aType), dataTypeToMlirTypeAsm().at(bType),
+      dataTypeToMlirTypeAsm().at(outType));
   if (opts.bias) {
     graphName +=
-        std::format("_biastype{}", kDataTypeToMlirTypeAsm.at(biasType));
+        std::format("_biastype{}", dataTypeToMlirTypeAsm().at(biasType));
   }
   graph.setName(graphName);
 
@@ -786,12 +786,12 @@ static ErrorObject runMatmulBenchmark(const MatmulOptions &matmulOpts,
       "bias_type must be specified when --bias flag is set");
 
   // Parse data type strings using direct map lookup
-  DataType aType = kMlirTypeAsmToDataType.at(matmulOpts.a_type);
-  DataType bType = kMlirTypeAsmToDataType.at(matmulOpts.b_type);
-  DataType outType = kMlirTypeAsmToDataType.at(matmulOpts.out_type);
+  DataType aType = mlirTypeAsmToDataType().at(matmulOpts.a_type);
+  DataType bType = mlirTypeAsmToDataType().at(matmulOpts.b_type);
+  DataType outType = mlirTypeAsmToDataType().at(matmulOpts.out_type);
   DataType biasType = DataType::NotSet;
   if (matmulOpts.bias) {
-    biasType = kMlirTypeAsmToDataType.at(matmulOpts.bias_type);
+    biasType = mlirTypeAsmToDataType().at(matmulOpts.bias_type);
   }
 
   ErrorObject status = benchmarkMatmul(matmulOpts, aType, bType, outType,

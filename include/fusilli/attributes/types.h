@@ -44,31 +44,40 @@ enum class DataType : uint8_t {
 };
 
 // Map from Fusilli types to MLIR types.
-static const std::unordered_map<DataType, std::string> kDataTypeToMlirTypeAsm =
-    {
+inline const std::unordered_map<DataType, std::string> &
+dataTypeToMlirTypeAsm() {
+  static const std::unordered_map<DataType, std::string> map = {
 #define DEFINE_ENUM(FUSILLI_TYPE, TORCH_TYPE, MLIR_TYPE)                       \
   {DataType::FUSILLI_TYPE, MLIR_TYPE},
-        FUSILLI_FORALL_DATA_TYPES(DEFINE_ENUM)
+      FUSILLI_FORALL_DATA_TYPES(DEFINE_ENUM)
 #undef DEFINE_ENUM
-};
+  };
+  return map;
+}
 
 // Map from Fusilli types to Torch types.
-static const std::unordered_map<DataType, torch_upstream::ScalarType>
-    kDataTypeToTorchType = {
+inline const std::unordered_map<DataType, torch_upstream::ScalarType> &
+dataTypeToTorchType() {
+  static const std::unordered_map<DataType, torch_upstream::ScalarType> map = {
 #define DEFINE_ENUM(FUSILLI_TYPE, TORCH_TYPE, MLIR_TYPE)                       \
   {DataType::FUSILLI_TYPE, torch_upstream::ScalarType::TORCH_TYPE},
-        FUSILLI_FORALL_DATA_TYPES(DEFINE_ENUM)
+      FUSILLI_FORALL_DATA_TYPES(DEFINE_ENUM)
 #undef DEFINE_ENUM
-};
+  };
+  return map;
+}
 
 // Map from MLIR type ASM strings to Fusilli types.
-static const std::unordered_map<std::string, DataType> kMlirTypeAsmToDataType =
-    {
+inline const std::unordered_map<std::string, DataType> &
+mlirTypeAsmToDataType() {
+  static const std::unordered_map<std::string, DataType> map = {
 #define DEFINE_ENUM(FUSILLI_TYPE, TORCH_TYPE, MLIR_TYPE)                       \
   {MLIR_TYPE, DataType::FUSILLI_TYPE},
-        FUSILLI_FORALL_DATA_TYPES(DEFINE_ENUM)
+      FUSILLI_FORALL_DATA_TYPES(DEFINE_ENUM)
 #undef DEFINE_ENUM
-};
+  };
+  return map;
+}
 
 } // namespace fusilli
 

@@ -70,20 +70,23 @@ enum class [[nodiscard]] ErrorCode : uint8_t {
   FileSystemFailure,
 };
 
-static const std::unordered_map<ErrorCode, std::string> kErrorCodeToStr = {
-    {ErrorCode::OK, "OK"},
-    {ErrorCode::NotImplemented, "NOT_IMPLEMENTED"},
-    {ErrorCode::NotValidated, "NOT_VALIDATED"},
-    {ErrorCode::NotCompiled, "NOT_COMPILED"},
-    {ErrorCode::AttributeNotSet, "ATTRIBUTE_NOT_SET"},
-    {ErrorCode::InternalError, "INTERNAL_ERROR"},
-    {ErrorCode::InvalidArgument, "INVALID_ARGUMENT"},
-    {ErrorCode::InvalidAttribute, "INVALID_ATTRIBUTE"},
-    {ErrorCode::VariantPackError, "VARIANT_PACK_ERROR"},
-    {ErrorCode::CompileFailure, "COMPILE_FAILURE"},
-    {ErrorCode::RuntimeFailure, "RUNTIME_FAILURE"},
-    {ErrorCode::FileSystemFailure, "FILE_SYSTEM_FAILURE"},
-};
+inline const std::unordered_map<ErrorCode, std::string> &errorCodeToStr() {
+  static const std::unordered_map<ErrorCode, std::string> map = {
+      {ErrorCode::OK, "OK"},
+      {ErrorCode::NotImplemented, "NOT_IMPLEMENTED"},
+      {ErrorCode::NotValidated, "NOT_VALIDATED"},
+      {ErrorCode::NotCompiled, "NOT_COMPILED"},
+      {ErrorCode::AttributeNotSet, "ATTRIBUTE_NOT_SET"},
+      {ErrorCode::InternalError, "INTERNAL_ERROR"},
+      {ErrorCode::InvalidArgument, "INVALID_ARGUMENT"},
+      {ErrorCode::InvalidAttribute, "INVALID_ATTRIBUTE"},
+      {ErrorCode::VariantPackError, "VARIANT_PACK_ERROR"},
+      {ErrorCode::CompileFailure, "COMPILE_FAILURE"},
+      {ErrorCode::RuntimeFailure, "RUNTIME_FAILURE"},
+      {ErrorCode::FileSystemFailure, "FILE_SYSTEM_FAILURE"},
+  };
+  return map;
+}
 
 struct [[nodiscard]] ErrorObject {
   ErrorCode code;
@@ -277,8 +280,8 @@ template <typename T> inline auto ok(T &&y) {
 
 // Stream operator for ErrorCode.
 inline std::ostream &operator<<(std::ostream &os, const ErrorCode &code) {
-  if (kErrorCodeToStr.contains(code)) // C++20
-    os << kErrorCodeToStr.at(code);
+  if (errorCodeToStr().contains(code)) // C++20
+    os << errorCodeToStr().at(code);
   else
     os << "UNKNOWN_ERROR_CODE";
   return os;
