@@ -70,9 +70,9 @@ namespace fusilli {
 // The prefix is generally what attribute this refers to (e.g.
 // padding, stride, dilation etc.) and the suffix is the node's
 // unique name (for SSA disambiguation).
-std::string getListOfIntOpsAsm(const std::vector<int64_t> &listOfInts,
-                               const std::string &prefix,
-                               const std::string &suffix) {
+inline std::string getListOfIntOpsAsm(const std::vector<int64_t> &listOfInts,
+                                      const std::string &prefix,
+                                      const std::string &suffix) {
   std::ostringstream oss;
   std::vector<std::string> ssaValueNames;
 
@@ -119,9 +119,9 @@ std::string getListOfIntOpsAsm(const std::vector<int64_t> &listOfInts,
 //
 // The suffix is used to ensure unique SSA names when the same tensor is used
 // by multiple different operations in a graph.
-std::string getPermuteOpsAsm(const std::shared_ptr<TensorAttr> &tensor,
-                             const std::string &prefix,
-                             const std::string &suffix, bool isInput) {
+inline std::string getPermuteOpsAsm(const std::shared_ptr<TensorAttr> &tensor,
+                                    const std::string &prefix,
+                                    const std::string &suffix, bool isInput) {
   std::ostringstream oss;
 
   // Get permute order based on direction.
