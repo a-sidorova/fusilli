@@ -17,22 +17,22 @@
 // TORCH-CHECK:       %normalized_shape_val_2_layernorm_infer = torch.constant.int 32
 // TORCH-CHECK:       %normalized_shape_layernorm_infer = torch.prim.ListConstruct %normalized_shape_val_0_layernorm_infer, %normalized_shape_val_1_layernorm_infer, %normalized_shape_val_2_layernorm_infer : (!torch.int, !torch.int, !torch.int) -> !torch.list<int>
 // TORCH-CHECK:       %eps_layernorm_infer = torch.constant.float 1.000000e-05
-// TORCH-CHECK:       %permute_x_val_0_layernorm_infer = torch.constant.int 0
-// TORCH-CHECK:       %permute_x_val_1_layernorm_infer = torch.constant.int 1
-// TORCH-CHECK:       %permute_x_val_2_layernorm_infer = torch.constant.int 2
-// TORCH-CHECK:       %permute_x_val_3_layernorm_infer = torch.constant.int 3
-// TORCH-CHECK:       %permute_x_layernorm_infer = torch.prim.ListConstruct %permute_x_val_0_layernorm_infer, %permute_x_val_1_layernorm_infer, %permute_x_val_2_layernorm_infer, %permute_x_val_3_layernorm_infer : (!torch.int, !torch.int, !torch.int, !torch.int) -> !torch.list<int>
-// TORCH-CHECK:       %arg0_x_layernorm_infer_perm = torch.aten.permute %arg0_x, %permute_x_layernorm_infer : !torch.vtensor<[16,128,64,32],f32>, !torch.list<int> -> !torch.vtensor<[16,128,64,32],f32>
+// TORCH-CHECK:       %permute_X_val_0_layernorm_infer = torch.constant.int 0
+// TORCH-CHECK:       %permute_X_val_1_layernorm_infer = torch.constant.int 1
+// TORCH-CHECK:       %permute_X_val_2_layernorm_infer = torch.constant.int 2
+// TORCH-CHECK:       %permute_X_val_3_layernorm_infer = torch.constant.int 3
+// TORCH-CHECK:       %permute_X_layernorm_infer = torch.prim.ListConstruct %permute_X_val_0_layernorm_infer, %permute_X_val_1_layernorm_infer, %permute_X_val_2_layernorm_infer, %permute_X_val_3_layernorm_infer : (!torch.int, !torch.int, !torch.int, !torch.int) -> !torch.list<int>
+// TORCH-CHECK:       %arg0_x_layernorm_infer_perm = torch.aten.permute %arg0_x, %permute_X_layernorm_infer : !torch.vtensor<[16,128,64,32],f32>, !torch.list<int> -> !torch.vtensor<[16,128,64,32],f32>
 // TORCH-CHECK:       %none_scale_layernorm_infer = torch.constant.none
 // TORCH-CHECK:       %none_bias_layernorm_infer = torch.constant.none
 // TORCH-CHECK:       %cudnn_enable_layernorm_infer = torch.constant.bool false
 // TORCH-CHECK:       %result_layernorm_infer_perm = torch.aten.layer_norm %arg0_x_layernorm_infer_perm, %normalized_shape_layernorm_infer, %none_scale_layernorm_infer, %none_bias_layernorm_infer, %eps_layernorm_infer, %cudnn_enable_layernorm_infer : !torch.vtensor<[16,128,64,32],f32>, !torch.list<int>, !torch.none, !torch.none, !torch.float, !torch.bool -> !torch.vtensor<[16,128,64,32],f32>
-// TORCH-CHECK:       %permute_y_val_0_layernorm_infer = torch.constant.int 0
-// TORCH-CHECK:       %permute_y_val_1_layernorm_infer = torch.constant.int 1
-// TORCH-CHECK:       %permute_y_val_2_layernorm_infer = torch.constant.int 2
-// TORCH-CHECK:       %permute_y_val_3_layernorm_infer = torch.constant.int 3
-// TORCH-CHECK:       %permute_y_layernorm_infer = torch.prim.ListConstruct %permute_y_val_0_layernorm_infer, %permute_y_val_1_layernorm_infer, %permute_y_val_2_layernorm_infer, %permute_y_val_3_layernorm_infer : (!torch.int, !torch.int, !torch.int, !torch.int) -> !torch.list<int>
-// TORCH-CHECK:       %result = torch.aten.permute %result_layernorm_infer_perm, %permute_y_layernorm_infer : !torch.vtensor<[16,128,64,32],f32>, !torch.list<int> -> !torch.vtensor<[16,128,64,32],f32>
+// TORCH-CHECK:       %permute_Y_val_0_layernorm_infer = torch.constant.int 0
+// TORCH-CHECK:       %permute_Y_val_1_layernorm_infer = torch.constant.int 1
+// TORCH-CHECK:       %permute_Y_val_2_layernorm_infer = torch.constant.int 2
+// TORCH-CHECK:       %permute_Y_val_3_layernorm_infer = torch.constant.int 3
+// TORCH-CHECK:       %permute_Y_layernorm_infer = torch.prim.ListConstruct %permute_Y_val_0_layernorm_infer, %permute_Y_val_1_layernorm_infer, %permute_Y_val_2_layernorm_infer, %permute_Y_val_3_layernorm_infer : (!torch.int, !torch.int, !torch.int, !torch.int) -> !torch.list<int>
+// TORCH-CHECK:       %result = torch.aten.permute %result_layernorm_infer_perm, %permute_Y_layernorm_infer : !torch.vtensor<[16,128,64,32],f32>, !torch.list<int> -> !torch.vtensor<[16,128,64,32],f32>
 // TORCH-CHECK:       torch.overwrite.tensor.contents %result overwrites %result_ : !torch.vtensor<[16,128,64,32],f32>, !torch.tensor<[16,128,64,32],f32>
 // TORCH-CHECK:       return
 // TORCH-CHECK:     }

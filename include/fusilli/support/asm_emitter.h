@@ -49,6 +49,16 @@
 
 namespace fusilli {
 
+// SSA name prefixes for permute operations on tensors.
+// Declared as named `inline constexpr` variables
+// to prevent ODR-violation errors
+inline constexpr std::string kPermuteX = "permute_X";
+inline constexpr std::string kPermuteW = "permute_W";
+inline constexpr std::string kPermuteY = "permute_Y";
+inline constexpr std::string kPermuteDX = "permute_DX";
+inline constexpr std::string kPermuteDW = "permute_DW";
+inline constexpr std::string kPermuteDY = "permute_DY";
+
 // Given a vector of ints, returns the MLIR assembly for the
 // `torch.constant.int` ops for each int value and the
 // `torch.prim.ListConstruct` op wrapping these into a single
@@ -509,12 +519,15 @@ inline std::string ConvFPropNode::emitNodePreAsm() const {
   // the unique ConvFPropAttr name to avoid re-definition of names across
   // the overall MLIR assembly.
   std::string uniqueSSASuffix = convFPropAttr.getName();
-  std::string permuteX = getPermuteOpsAsm(convFPropAttr.getX(), "permute_X",
-                                          uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteW = getPermuteOpsAsm(convFPropAttr.getW(), "permute_W",
-                                          uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteY = getPermuteOpsAsm(convFPropAttr.getY(), "permute_Y",
-                                          uniqueSSASuffix, /*isInput=*/false);
+  std::string permuteX =
+      getPermuteOpsAsm(convFPropAttr.getX(), kPermuteX, uniqueSSASuffix,
+                       /*isInput=*/true);
+  std::string permuteW =
+      getPermuteOpsAsm(convFPropAttr.getW(), kPermuteW, uniqueSSASuffix,
+                       /*isInput=*/true);
+  std::string permuteY =
+      getPermuteOpsAsm(convFPropAttr.getY(), kPermuteY, uniqueSSASuffix,
+                       /*isInput=*/false);
 
   std::string output = std::format(schema,
                                    uniqueSSASuffix,      // {0}
@@ -681,11 +694,12 @@ inline std::string ConvWGradNode::emitNodePreAsm() const {
   // the unique ConvWGradAttr name to avoid re-definition of names across
   // the overall MLIR assembly.
   std::string uniqueSSASuffix = convWGradAttr.getName();
-  std::string permuteDY = getPermuteOpsAsm(convWGradAttr.getDY(), "permute_DY",
+  std::string permuteDY = getPermuteOpsAsm(convWGradAttr.getDY(), kPermuteDY,
                                            uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteX = getPermuteOpsAsm(convWGradAttr.getX(), "permute_X",
-                                          uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteDW = getPermuteOpsAsm(convWGradAttr.getDW(), "permute_DW",
+  std::string permuteX =
+      getPermuteOpsAsm(convWGradAttr.getX(), kPermuteX, uniqueSSASuffix,
+                       /*isInput=*/true);
+  std::string permuteDW = getPermuteOpsAsm(convWGradAttr.getDW(), kPermuteDW,
                                            uniqueSSASuffix, /*isInput=*/false);
 
   std::string output = std::format(schema,
@@ -844,11 +858,12 @@ inline std::string ConvDGradNode::emitNodePreAsm() const {
   // the unique ConvDGradAttr name to avoid re-definition of names across
   // the overall MLIR assembly.
   std::string uniqueSSASuffix = convDGradAttr.getName();
-  std::string permuteDY = getPermuteOpsAsm(convDGradAttr.getDY(), "permute_DY",
+  std::string permuteDY = getPermuteOpsAsm(convDGradAttr.getDY(), kPermuteDY,
                                            uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteW = getPermuteOpsAsm(convDGradAttr.getW(), "permute_W",
-                                          uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteDX = getPermuteOpsAsm(convDGradAttr.getDX(), "permute_DX",
+  std::string permuteW =
+      getPermuteOpsAsm(convDGradAttr.getW(), kPermuteW, uniqueSSASuffix,
+                       /*isInput=*/true);
+  std::string permuteDX = getPermuteOpsAsm(convDGradAttr.getDX(), kPermuteDX,
                                            uniqueSSASuffix, /*isInput=*/false);
 
   std::string output = std::format(schema,
@@ -986,9 +1001,9 @@ inline std::string LayerNormNode::getEpsilonOpsAsm() const {
 // (refer to the comments at the top of this file for details).
 inline std::string LayerNormNode::emitNodePreAsm() const {
   std::string uniqueSSASuffix = layernormAttr.getName();
-  std::string permuteX = getPermuteOpsAsm(layernormAttr.getX(), "permute_x",
+  std::string permuteX = getPermuteOpsAsm(layernormAttr.getX(), kPermuteX,
                                           uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteY = getPermuteOpsAsm(layernormAttr.getY(), "permute_y",
+  std::string permuteY = getPermuteOpsAsm(layernormAttr.getY(), kPermuteY,
                                           uniqueSSASuffix, /*isInput=*/false);
   std::string permuteScale =
       layernormAttr.getSCALE()
@@ -1236,20 +1251,20 @@ inline std::string PointwiseNode::emitNodePreAsm() const {
       getPermuteOpsAsm(pointwiseAttr.getOUT_0(), "permute_OUT_0",
                        uniqueSSASuffix, /*isInput=*/false);
 
-  constexpr std::string_view kUnaryTorchSchema = R"(
+  static constexpr char kUnaryTorchSchema[] = R"(
 {0}
 {1} = {6} {2} : {3} -> {4}
 {5}
 )";
 
-  constexpr std::string_view kBinaryTorchSchema = R"(
+  static constexpr char kBinaryTorchSchema[] = R"(
 {0}
 {1}
 {2} = {7} {3} : {4} -> {5}
 {6}
 )";
 
-  constexpr std::string_view kSubAddSchema = R"(
+  static constexpr char kSubAddSchema[] = R"(
 {0}
 {1}
 %alpha_{8} = torch.constant.int 1
@@ -1338,9 +1353,9 @@ inline std::string ReductionNode::emitNodePreAsm() const {
   dimListOss << getListOfIntOpsAsm(reductionDims, "reduction_dims", suffix);
 
   std::string permuteX =
-      getPermuteOpsAsm(xT, "permute_X", suffix, /*isInput=*/true);
+      getPermuteOpsAsm(xT, kPermuteX, suffix, /*isInput=*/true);
   std::string permuteY =
-      getPermuteOpsAsm(yT, "permute_Y", suffix, /*isInput=*/false);
+      getPermuteOpsAsm(yT, kPermuteY, suffix, /*isInput=*/false);
 
   switch (reductionAttr.getMode()) {
   case ReductionAttr::Mode::SUM: {
