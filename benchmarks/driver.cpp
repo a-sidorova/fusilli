@@ -625,11 +625,12 @@ static ErrorObject benchmarkMatmul(const MatmulOptions &opts, DataType aType,
       "benchmark_matmul_b{}_m{}_n{}_k{}_transA{}_transB{}_bias{}_atype{}_"
       "btype{}_outtype{}",
       opts.b, opts.m, opts.n, opts.k, opts.transA, opts.transB, opts.bias,
-      dataTypeToMlirTypeAsm().at(aType), dataTypeToMlirTypeAsm().at(bType),
-      dataTypeToMlirTypeAsm().at(outType));
+      getDataTypeToMlirTypeAsm().at(aType),
+      getDataTypeToMlirTypeAsm().at(bType),
+      getDataTypeToMlirTypeAsm().at(outType));
   if (opts.bias) {
     graphName +=
-        std::format("_biastype{}", dataTypeToMlirTypeAsm().at(biasType));
+        std::format("_biastype{}", getDataTypeToMlirTypeAsm().at(biasType));
   }
   graph.setName(graphName);
 
@@ -994,7 +995,7 @@ static ErrorObject runLayerNormBenchmark(const LayerNormOptions &layerNormOpts,
       "Input dimensions and layout must have the same rank");
 
   // Parse data type strings using direct map lookup
-  DataType type = kMlirTypeAsmToDataType.at(layerNormOpts.type);
+  DataType type = getMlirTypeAsmToDataType().at(layerNormOpts.type);
 
   ErrorObject status =
       benchmarkLayerNormFwd(layerNormOpts, dims, type, iter, deviceId, dump);
@@ -1015,12 +1016,12 @@ static ErrorObject runMatmulBenchmark(const MatmulOptions &matmulOpts,
       "bias_type must be specified when --bias flag is set");
 
   // Parse data type strings using direct map lookup
-  DataType aType = mlirTypeAsmToDataType().at(matmulOpts.a_type);
-  DataType bType = mlirTypeAsmToDataType().at(matmulOpts.b_type);
-  DataType outType = mlirTypeAsmToDataType().at(matmulOpts.out_type);
+  DataType aType = getMlirTypeAsmToDataType().at(matmulOpts.a_type);
+  DataType bType = getMlirTypeAsmToDataType().at(matmulOpts.b_type);
+  DataType outType = getMlirTypeAsmToDataType().at(matmulOpts.out_type);
   DataType biasType = DataType::NotSet;
   if (matmulOpts.bias) {
-    biasType = mlirTypeAsmToDataType().at(matmulOpts.bias_type);
+    biasType = getMlirTypeAsmToDataType().at(matmulOpts.bias_type);
   }
 
   ErrorObject status = benchmarkMatmul(matmulOpts, aType, bType, outType,

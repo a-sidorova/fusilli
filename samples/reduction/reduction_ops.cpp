@@ -29,7 +29,7 @@ static std::string generateName(ReductionAttr::Mode mode, DataType type,
                                 const std::vector<int64_t> &yDim) {
   std::string name =
       std::format("reduction_{}_dt{}", ReductionAttr::kModeToStr.at(mode),
-                  dataTypeToMlirTypeAsm().at(type));
+                  getDataTypeToMlirTypeAsm().at(type));
   name += "_x";
   for (const auto &d : xDim)
     name += std::format("_{}", d);

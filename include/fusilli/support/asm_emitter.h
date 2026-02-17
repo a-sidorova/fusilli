@@ -45,7 +45,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <vector>
 
 namespace fusilli {
@@ -221,7 +220,7 @@ inline std::string TensorAttr::getTensorTypeAsm(bool isValueTensor,
       // between_fn:
       [&] { oss << ","; });
   oss << "],";
-  oss << dataTypeToMlirTypeAsm().at(getDataType());
+  oss << getDataTypeToMlirTypeAsm().at(getDataType());
   oss << ">";
   return oss.str();
 }
@@ -646,7 +645,7 @@ inline std::string ConvWGradNode::getPermuteEmptyWOpsAsm() const {
   )";
 
   torch_upstream::ScalarType dataType =
-      dataTypeToTorchType().at(dwT->getDataType());
+      getDataTypeToTorchType().at(dwT->getDataType());
   std::string output =
       std::format(schema,
                   suffix,                      // {0}
@@ -809,7 +808,7 @@ inline std::string ConvDGradNode::getPermuteEmptyXOpsAsm() const {
   )";
 
   torch_upstream::ScalarType dataType =
-      dataTypeToTorchType().at(dxT->getDataType());
+      getDataTypeToTorchType().at(dxT->getDataType());
   std::string output =
       std::format(schema,
                   suffix,                      // {0}

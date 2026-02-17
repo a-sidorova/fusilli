@@ -52,6 +52,7 @@ endif()
 # Includes
 include(CTest)
 include(FetchContent)
+include(CheckCXXCompilerFlag)
 
 # Local Includes
 list(APPEND CMAKE_MODULE_PATH
@@ -76,8 +77,7 @@ endif()
 message(STATUS "  - Host")
 
 if(FUSILLI_ENABLE_ASAN AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  message(WARNING "AddressSanitizer is only supported with clang. Disabled AddressSanitizer.")
-  set(FUSILLI_ENABLE_ASAN OFF CACHE BOOL "Enable AddressSanitizer" FORCE)
+  message(FATAL_ERROR "AddressSanitizer requires Clang as the C++ compiler, but '${CMAKE_CXX_COMPILER_ID}' was detected.")
 endif()
 
 ################################################################################

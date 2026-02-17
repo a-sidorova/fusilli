@@ -108,7 +108,7 @@ inline ErrorObject Handle::createCPUDevice() {
 
   iree_hal_device_t *rawDevice = nullptr;
   FUSILLI_CHECK_ERROR(iree_runtime_instance_try_create_default_device(
-      instance_.get(), iree_make_cstring_view(halDriver().at(backend_)),
+      instance_.get(), iree_make_cstring_view(getHalDriver().at(backend_)),
       &rawDevice));
 
   // Wrap the raw device ptr with a unique_ptr and custom deleter
@@ -140,8 +140,8 @@ inline ErrorObject Handle::createAMDGPUDevice(int deviceId, uintptr_t stream) {
   iree_hal_hip_driver_options_initialize(&driverOptions);
   iree_hal_driver_t *driver;
   FUSILLI_CHECK_ERROR(iree_hal_hip_driver_create(
-      iree_make_cstring_view(halDriver().at(backend_)), &driverOptions, &params,
-      iree_allocator_system(), &driver));
+      iree_make_cstring_view(getHalDriver().at(backend_)), &driverOptions,
+      &params, iree_allocator_system(), &driver));
 
   // Create device.
   iree_hal_device_t *rawDevice = nullptr;
@@ -149,7 +149,7 @@ inline ErrorObject Handle::createAMDGPUDevice(int deviceId, uintptr_t stream) {
       driver, HIP_DEVICE_ID_TO_IREE_DEVICE_ID(deviceId), /*param_count=*/0,
       /*params=*/nullptr, iree_allocator_system(), &rawDevice);
 
-  // Release the driver now that the device has been created.
+  // Release the driver regardless of whether device creation succeeded.
   iree_hal_driver_release(driver);
 
   FUSILLI_CHECK_ERROR(deviceStatus);
@@ -267,10 +267,10 @@ Graph::execute(const Handle &handle,
   FUSILLI_RETURN_ERROR_IF(session_ == nullptr, ErrorCode::NotCompiled,
                           "Graph must be compiled before being executed");
 
-  if (!backendExecuteAsync().contains(handle.getBackend())) // C++ 20
+  if (!getBackendExecuteAsync().contains(handle.getBackend())) // C++ 20
     return ErrorObject(ErrorCode::InternalError,
                        "Graph::execute got an unknown backend");
-  bool executeAsync = backendExecuteAsync().at(handle.getBackend());
+  bool executeAsync = getBackendExecuteAsync().at(handle.getBackend());
 
   // Call `module.main` for synchronous execution and `module.main$async` for
   // asynchronous execution.
@@ -360,10 +360,6 @@ Graph::execute(const Handle &handle,
       iree_vm_ref_t waitFenceRef = iree_hal_fence_move_ref(waitFence);
       FUSILLI_CHECK_ERROR(
           iree_vm_list_push_ref_move(call.inputs, &waitFenceRef));
-<<<<<<< HEAD
-=======
-      iree_hal_fence_release(waitFence);
->>>>>>> 82c7d73 ([Fusilli] Fixed remaining asan/lsan errors)
     }
     // Create dummy signal fence (tells downstream consumers that kernel has
     // ran) that's already completed.
@@ -375,10 +371,6 @@ Graph::execute(const Handle &handle,
       iree_vm_ref_t signalFenceRef = iree_hal_fence_move_ref(signalFence);
       FUSILLI_CHECK_ERROR(
           iree_vm_list_push_ref_move(call.inputs, &signalFenceRef));
-<<<<<<< HEAD
-=======
-      iree_hal_fence_release(signalFence);
->>>>>>> 82c7d73 ([Fusilli] Fixed remaining asan/lsan errors)
     }
   }
 

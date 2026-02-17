@@ -28,7 +28,7 @@ enum class NormFwdPhase : uint8_t {
 };
 
 inline const std::unordered_map<NormFwdPhase, std::string> &
-normFwdPhaseToStr() {
+getNormFwdPhaseToStr() {
   static const std::unordered_map<NormFwdPhase, std::string> map = {
       {NormFwdPhase::NOT_SET, "NOT_SET"},
       {NormFwdPhase::TRAINING, "TRAINING"},
