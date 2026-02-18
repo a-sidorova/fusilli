@@ -1330,7 +1330,8 @@ inline std::string PointwiseNode::emitNodePreAsm() const {
     FUSILLI_DECLARE_SUB_ADD_TORCH_EMITTER(SUB, kAsmTorchOpSub)
 
   default:
-    __builtin_unreachable();
+    assert(false && "Unsupported pointwise mode");
+    return "";
   }
 }
 
@@ -1455,7 +1456,8 @@ inline std::string ReductionNode::emitNodePreAsm() const {
     );
   }
   default:
-    __builtin_unreachable();
+    assert(false && "Unsupported pointwise mode");
+    return "";
   }
 }
 
