@@ -250,6 +250,17 @@ public:
 
     return ok();
   }
+
+private:
+  // SSA name prefixes for permute operations on tensors in ASM emitter
+  // implementation. Declared as named `static constexpr` variables to prevent
+  // ODR-violation errors.
+  static constexpr char kAsmPermuteX[] = "permute_X";
+  static constexpr char kAsmPermuteW[] = "permute_W";
+  static constexpr char kAsmPermuteY[] = "permute_Y";
+  static constexpr char kAsmStride[] = "stride";
+  static constexpr char kAsmPadding[] = "padding";
+  static constexpr char kAsmDilation[] = "dilation";
 };
 
 class ConvWGradNode : public NodeCRTP<ConvWGradNode> {
@@ -423,6 +434,17 @@ public:
 
     return ok();
   }
+
+private:
+  // SSA name prefixes for permute operations on tensors in ASM emitter
+  // implementation. Declared as named `static constexpr` variables to prevent
+  // ODR-violation errors.
+  static constexpr char kAsmPermuteX[] = "permute_X";
+  static constexpr char kAsmPermuteDW[] = "permute_DW";
+  static constexpr char kAsmPermuteDY[] = "permute_DY";
+  static constexpr char kAsmStride[] = "stride";
+  static constexpr char kAsmPadding[] = "padding";
+  static constexpr char kAsmDilation[] = "dilation";
 };
 
 class ConvDGradNode : public NodeCRTP<ConvDGradNode> {
@@ -595,6 +617,17 @@ public:
 
     return ok();
   }
+
+private:
+  // SSA name prefixes for permute operations on tensors in ASM emitter
+  // implementation. Declared as named `static constexpr` variables to prevent
+  // ODR-violation errors.
+  static constexpr char kAsmPermuteDX[] = "permute_DX";
+  static constexpr char kAsmPermuteW[] = "permute_W";
+  static constexpr char kAsmPermuteDY[] = "permute_DY";
+  static constexpr char kAsmStride[] = "stride";
+  static constexpr char kAsmPadding[] = "padding";
+  static constexpr char kAsmDilation[] = "dilation";
 };
 
 } // namespace fusilli

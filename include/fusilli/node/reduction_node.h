@@ -136,6 +136,14 @@ public:
                             "reduce (Y[i] == 1 where X[i] > 1)");
     return ok();
   }
+
+private:
+  // SSA name prefixes for permute operations on tensors in ASM emitter
+  // implementation. Declared as named `static constexpr` variables to prevent
+  // ODR-violation errors.
+  static constexpr char kAsmPermuteX[] = "permute_X";
+  static constexpr char kAsmPermuteY[] = "permute_Y";
+  static constexpr char kAsmReductionDims[] = "reduction_dims";
 };
 } // namespace fusilli
 

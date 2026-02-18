@@ -250,6 +250,13 @@ private:
     }
     return ok();
   };
+
+  // SSA name prefixes for permute operations on tensors in ASM emitter
+  // implementation. Declared as named `static constexpr` variables to prevent
+  // ODR-violation errors.
+  static constexpr char kAsmPermuteA[] = "permute_A";
+  static constexpr char kAsmPermuteB[] = "permute_B";
+  static constexpr char kAsmPermuteC[] = "permute_C";
 };
 
 } // namespace fusilli

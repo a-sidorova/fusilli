@@ -303,6 +303,17 @@ private:
         generateStrideOrderPreservingFormat(xStride, scaleBiasDim.size());
     return generateStrideFromDim(scaleBiasDim, strideOrder);
   }
+
+  // SSA name prefixes for permute operations on tensors in ASM emitter
+  // implementation. Declared as named `static constexpr` variables to prevent
+  // ODR-violation errors.
+  static constexpr char kAsmPermuteX[] = "permute_x";
+  static constexpr char kAsmPermuteY[] = "permute_y";
+  static constexpr char kAsmPermuteScale[] = "permute_scale";
+  static constexpr char kAsmPermuteBias[] = "permute_bias";
+  static constexpr char kAsmPermuteMean[] = "permute_mean";
+  static constexpr char kAsmPermuteInvVariance[] = "permute_inv_variance";
+  static constexpr char kAsmNormalizedShape[] = "normalized_shape";
 };
 
 } // namespace fusilli

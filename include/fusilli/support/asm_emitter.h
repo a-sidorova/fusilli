@@ -49,16 +49,6 @@
 
 namespace fusilli {
 
-// SSA name prefixes for permute operations on tensors.
-// Declared as named `inline constexpr` variables
-// to prevent ODR-violation errors
-inline constexpr std::string kPermuteX = "permute_X";
-inline constexpr std::string kPermuteW = "permute_W";
-inline constexpr std::string kPermuteY = "permute_Y";
-inline constexpr std::string kPermuteDX = "permute_DX";
-inline constexpr std::string kPermuteDW = "permute_DW";
-inline constexpr std::string kPermuteDY = "permute_DY";
-
 // Given a vector of ints, returns the MLIR assembly for the
 // `torch.constant.int` ops for each int value and the
 // `torch.prim.ListConstruct` op wrapping these into a single
@@ -156,6 +146,8 @@ inline std::string getPermuteOpsAsm(const std::shared_ptr<TensorAttr> &tensor,
   std::string toType = tensor->getTensorTypeAsm(
       /*isValueTensor=*/true, /*useLogicalDims=*/isInput);
 
+  // We use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
     {0} = torch.aten.permute {1}, {2} : {3}, !torch.list<int> -> {4}
   )";
@@ -325,6 +317,8 @@ inline std::string Graph::getResultNamesAndTypesAsm() const {
 // schema, take extra caution about double bracing the curly brackets
 // (refer to the comments at the top of this file for details).
 inline std::string Graph::emitNodePreAsm() const {
+  // We use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
 module @module {{
   func.func @main({0}, {1}) attributes {{torch.assume_strict_symbolic_shapes}} {{
@@ -366,6 +360,8 @@ inline std::string Graph::emitNodePostAsm() const {
         return output->isVirtual();
       });
 
+  // We use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
     {0}
 
@@ -456,19 +452,20 @@ inline std::string ConvFPropNode::getGroupOpsAsm() const {
 
 // Get strides in MLIR assembly format.
 inline std::string ConvFPropNode::getStrideOpsAsm() const {
-  return getListOfIntOpsAsm(convFPropAttr.getStride(), /*prefix=*/"stride",
+  return getListOfIntOpsAsm(convFPropAttr.getStride(), /*prefix=*/kAsmStride,
                             /*suffix=*/convFPropAttr.getName());
 }
 
 // Get padding in MLIR assembly format.
 inline std::string ConvFPropNode::getPaddingOpsAsm() const {
-  return getListOfIntOpsAsm(convFPropAttr.getPadding(), /*prefix=*/"padding",
+  return getListOfIntOpsAsm(convFPropAttr.getPadding(), /*prefix=*/kAsmPadding,
                             /*suffix=*/convFPropAttr.getName());
 }
 
 // Get dilation in MLIR assembly format.
 inline std::string ConvFPropNode::getDilationOpsAsm() const {
-  return getListOfIntOpsAsm(convFPropAttr.getDilation(), /*prefix=*/"dilation",
+  return getListOfIntOpsAsm(convFPropAttr.getDilation(),
+                            /*prefix=*/kAsmDilation,
                             /*suffix=*/convFPropAttr.getName());
 }
 
@@ -501,6 +498,9 @@ inline std::string ConvFPropNode::emitNodePreAsm() const {
   //      AnyTorchOptionalTensorType:$result
   //    );
   //   ...
+
+  // We use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
     %bias_{0} = torch.constant.none
     %transposed_{0} = torch.constant.bool false
@@ -520,13 +520,13 @@ inline std::string ConvFPropNode::emitNodePreAsm() const {
   // the overall MLIR assembly.
   std::string uniqueSSASuffix = convFPropAttr.getName();
   std::string permuteX =
-      getPermuteOpsAsm(convFPropAttr.getX(), kPermuteX, uniqueSSASuffix,
+      getPermuteOpsAsm(convFPropAttr.getX(), kAsmPermuteX, uniqueSSASuffix,
                        /*isInput=*/true);
   std::string permuteW =
-      getPermuteOpsAsm(convFPropAttr.getW(), kPermuteW, uniqueSSASuffix,
+      getPermuteOpsAsm(convFPropAttr.getW(), kAsmPermuteW, uniqueSSASuffix,
                        /*isInput=*/true);
   std::string permuteY =
-      getPermuteOpsAsm(convFPropAttr.getY(), kPermuteY, uniqueSSASuffix,
+      getPermuteOpsAsm(convFPropAttr.getY(), kAsmPermuteY, uniqueSSASuffix,
                        /*isInput=*/false);
 
   std::string output = std::format(schema,
@@ -621,19 +621,20 @@ inline std::string ConvWGradNode::getGroupOpsAsm() const {
 
 // Get strides in MLIR assembly format.
 inline std::string ConvWGradNode::getStrideOpsAsm() const {
-  return getListOfIntOpsAsm(convWGradAttr.getStride(), /*prefix=*/"stride",
+  return getListOfIntOpsAsm(convWGradAttr.getStride(), /*prefix=*/kAsmStride,
                             /*suffix=*/convWGradAttr.getName());
 }
 
 // Get padding in MLIR assembly format.
 inline std::string ConvWGradNode::getPaddingOpsAsm() const {
-  return getListOfIntOpsAsm(convWGradAttr.getPadding(), /*prefix=*/"padding",
+  return getListOfIntOpsAsm(convWGradAttr.getPadding(), /*prefix=*/kAsmPadding,
                             /*suffix=*/convWGradAttr.getName());
 }
 
 // Get dilation in MLIR assembly format.
 inline std::string ConvWGradNode::getDilationOpsAsm() const {
-  return getListOfIntOpsAsm(convWGradAttr.getDilation(), /*prefix=*/"dilation",
+  return getListOfIntOpsAsm(convWGradAttr.getDilation(),
+                            /*prefix=*/kAsmDilation,
                             /*suffix=*/convWGradAttr.getName());
 }
 
@@ -651,6 +652,8 @@ inline std::string ConvWGradNode::getPermuteEmptyWOpsAsm() const {
   // Use `torch.aten.empty.memory_format` to create an empty tensor. It is the
   // simplest op to create a new tensor without having a pre-existing one
   // (then `torch.aten.empty_like` could be used).
+  // Note that we use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
     %none_DW_{0} = torch.constant.none
     %dtype_DW_{0} = torch.constant.int {3}
@@ -672,6 +675,8 @@ inline std::string ConvWGradNode::getPermuteEmptyWOpsAsm() const {
 }
 
 inline std::string ConvWGradNode::emitNodePreAsm() const {
+  // We use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
     %bias_{0} = torch.constant.none
     %transposed_{0} = torch.constant.bool false
@@ -694,12 +699,12 @@ inline std::string ConvWGradNode::emitNodePreAsm() const {
   // the unique ConvWGradAttr name to avoid re-definition of names across
   // the overall MLIR assembly.
   std::string uniqueSSASuffix = convWGradAttr.getName();
-  std::string permuteDY = getPermuteOpsAsm(convWGradAttr.getDY(), kPermuteDY,
+  std::string permuteDY = getPermuteOpsAsm(convWGradAttr.getDY(), kAsmPermuteDY,
                                            uniqueSSASuffix, /*isInput=*/true);
   std::string permuteX =
-      getPermuteOpsAsm(convWGradAttr.getX(), kPermuteX, uniqueSSASuffix,
+      getPermuteOpsAsm(convWGradAttr.getX(), kAsmPermuteX, uniqueSSASuffix,
                        /*isInput=*/true);
-  std::string permuteDW = getPermuteOpsAsm(convWGradAttr.getDW(), kPermuteDW,
+  std::string permuteDW = getPermuteOpsAsm(convWGradAttr.getDW(), kAsmPermuteDW,
                                            uniqueSSASuffix, /*isInput=*/false);
 
   std::string output = std::format(schema,
@@ -785,19 +790,20 @@ inline std::string ConvDGradNode::getGroupOpsAsm() const {
 
 // Get strides in MLIR assembly format.
 inline std::string ConvDGradNode::getStrideOpsAsm() const {
-  return getListOfIntOpsAsm(convDGradAttr.getStride(), /*prefix=*/"stride",
+  return getListOfIntOpsAsm(convDGradAttr.getStride(), /*prefix=*/kAsmStride,
                             /*suffix=*/convDGradAttr.getName());
 }
 
 // Get padding in MLIR assembly format.
 inline std::string ConvDGradNode::getPaddingOpsAsm() const {
-  return getListOfIntOpsAsm(convDGradAttr.getPadding(), /*prefix=*/"padding",
+  return getListOfIntOpsAsm(convDGradAttr.getPadding(), /*prefix=*/kAsmPadding,
                             /*suffix=*/convDGradAttr.getName());
 }
 
 // Get dilation in MLIR assembly format.
 inline std::string ConvDGradNode::getDilationOpsAsm() const {
-  return getListOfIntOpsAsm(convDGradAttr.getDilation(), /*prefix=*/"dilation",
+  return getListOfIntOpsAsm(convDGradAttr.getDilation(),
+                            /*prefix=*/kAsmDilation,
                             /*suffix=*/convDGradAttr.getName());
 }
 
@@ -815,6 +821,8 @@ inline std::string ConvDGradNode::getPermuteEmptyXOpsAsm() const {
   // Use `torch.aten.empty.memory_format` to create an empty tensor. It is the
   // simplest op to create a new tensor without having a pre-existing one
   // (then `torch.aten.empty_like` could be used).
+  // Note that we use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
     %none_DX_{0} = torch.constant.none
     %dtype_DX_{0} = torch.constant.int {3}
@@ -836,6 +844,8 @@ inline std::string ConvDGradNode::getPermuteEmptyXOpsAsm() const {
 }
 
 inline std::string ConvDGradNode::emitNodePreAsm() const {
+  // We use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
     %bias_{0} = torch.constant.none
     %transposed_{0} = torch.constant.bool false
@@ -858,12 +868,12 @@ inline std::string ConvDGradNode::emitNodePreAsm() const {
   // the unique ConvDGradAttr name to avoid re-definition of names across
   // the overall MLIR assembly.
   std::string uniqueSSASuffix = convDGradAttr.getName();
-  std::string permuteDY = getPermuteOpsAsm(convDGradAttr.getDY(), kPermuteDY,
+  std::string permuteDY = getPermuteOpsAsm(convDGradAttr.getDY(), kAsmPermuteDY,
                                            uniqueSSASuffix, /*isInput=*/true);
   std::string permuteW =
-      getPermuteOpsAsm(convDGradAttr.getW(), kPermuteW, uniqueSSASuffix,
+      getPermuteOpsAsm(convDGradAttr.getW(), kAsmPermuteW, uniqueSSASuffix,
                        /*isInput=*/true);
-  std::string permuteDX = getPermuteOpsAsm(convDGradAttr.getDX(), kPermuteDX,
+  std::string permuteDX = getPermuteOpsAsm(convDGradAttr.getDX(), kAsmPermuteDX,
                                            uniqueSSASuffix, /*isInput=*/false);
 
   std::string output = std::format(schema,
@@ -981,7 +991,8 @@ inline std::string LayerNormNode::getResultTypesAsm() const {
 // normalized_shape is the dimensions to normalize over (typically all dims
 // except batch).
 inline std::string LayerNormNode::getNormalizedShapeOpsAsm() const {
-  return getListOfIntOpsAsm(getNormalizedShape(), /*prefix=*/"normalized_shape",
+  return getListOfIntOpsAsm(getNormalizedShape(),
+                            /*prefix=*/kAsmNormalizedShape,
                             /*suffix=*/layernormAttr.getName());
 }
 
@@ -1001,30 +1012,47 @@ inline std::string LayerNormNode::getEpsilonOpsAsm() const {
 // (refer to the comments at the top of this file for details).
 inline std::string LayerNormNode::emitNodePreAsm() const {
   std::string uniqueSSASuffix = layernormAttr.getName();
-  std::string permuteX = getPermuteOpsAsm(layernormAttr.getX(), kPermuteX,
+  std::string permuteX = getPermuteOpsAsm(layernormAttr.getX(), kAsmPermuteX,
                                           uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteY = getPermuteOpsAsm(layernormAttr.getY(), kPermuteY,
+  std::string permuteY = getPermuteOpsAsm(layernormAttr.getY(), kAsmPermuteY,
                                           uniqueSSASuffix, /*isInput=*/false);
-  std::string permuteScale =
-      layernormAttr.getSCALE()
-          ? getPermuteOpsAsm(layernormAttr.getSCALE(), "permute_scale",
-                             uniqueSSASuffix, /*isInput=*/true)
-          : std::format("%none_scale_{} = torch.constant.none",
-                        uniqueSSASuffix);
-  std::string permuteBias =
-      layernormAttr.getBIAS()
-          ? getPermuteOpsAsm(layernormAttr.getBIAS(), "permute_bias",
-                             uniqueSSASuffix, /*isInput=*/true)
-          : std::format("%none_bias_{} = torch.constant.none", uniqueSSASuffix);
+
+  std::string permuteScale;
+  if (layernormAttr.getSCALE()) {
+    permuteScale = getPermuteOpsAsm(layernormAttr.getSCALE(), kAsmPermuteScale,
+                                    uniqueSSASuffix, /*isInput=*/true);
+  } else {
+    // "static constexpr' avoids ASAN ODR violations from string literals
+    // in inline functions included across multiple translation units.
+    static constexpr char fmtNoneScale[] = R"(
+        %none_scale_{0} = torch.constant.none
+      )";
+    permuteScale = std::format(fmtNoneScale, uniqueSSASuffix);
+  }
+
+  std::string permuteBias;
+  if (layernormAttr.getBIAS()) {
+    permuteBias = getPermuteOpsAsm(layernormAttr.getBIAS(), kAsmPermuteBias,
+                                   uniqueSSASuffix, /*isInput=*/true);
+  } else {
+    // "static constexpr' avoids ASAN ODR violations from string literals
+    // in inline functions included across multiple translation units.
+    static constexpr char fmtNoneBias[] = R"(
+      %none_bias_{0} = torch.constant.none
+    )";
+    permuteBias = std::format(fmtNoneBias, uniqueSSASuffix);
+  }
 
   if (isTrainingForwardPhase()) {
-    std::string permuteMean =
-        getPermuteOpsAsm(layernormAttr.getMEAN(), "permute_mean",
-                         uniqueSSASuffix, /*isInput=*/false);
+    std::string permuteMean = getPermuteOpsAsm(layernormAttr.getMEAN(),
+                                               kAsmPermuteMean, uniqueSSASuffix,
+                                               /*isInput=*/false);
     std::string permuteInvVariance = getPermuteOpsAsm(
-        layernormAttr.getINV_VARIANCE(), "permute_inv_variance",
+        layernormAttr.getINV_VARIANCE(), kAsmPermuteInvVariance,
         uniqueSSASuffix, /*isInput=*/false);
 
+    // We use "static constexpr char[]" here to
+    // prevent ODR violations with the anonymous .str globals.
     static constexpr char schema[] = R"(
       {0}
       {1}
@@ -1053,6 +1081,8 @@ inline std::string LayerNormNode::emitNodePreAsm() const {
     );
   }
 
+  // We use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
     {1}
     {2}
@@ -1120,6 +1150,8 @@ inline std::string MatmulNode::getResultTypesAsm() const {
 }
 
 inline std::string MatmulNode::emitNodePreAsm() const {
+  // We use "static constexpr char[]" here to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char schema[] = R"(
     {0}
     {1}
@@ -1128,11 +1160,11 @@ inline std::string MatmulNode::emitNodePreAsm() const {
   )";
 
   std::string uniqueSSASuffix = matmulAttr.getName();
-  std::string permuteA = getPermuteOpsAsm(matmulAttr.getA(), "permute_A",
+  std::string permuteA = getPermuteOpsAsm(matmulAttr.getA(), kAsmPermuteA,
                                           uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteB = getPermuteOpsAsm(matmulAttr.getB(), "permute_B",
+  std::string permuteB = getPermuteOpsAsm(matmulAttr.getB(), kAsmPermuteB,
                                           uniqueSSASuffix, /*isInput=*/true);
-  std::string permuteC = getPermuteOpsAsm(matmulAttr.getC(), "permute_C",
+  std::string permuteC = getPermuteOpsAsm(matmulAttr.getC(), kAsmPermuteC,
                                           uniqueSSASuffix, /*isInput=*/false);
 
   std::string output = std::format(schema,
@@ -1214,7 +1246,7 @@ inline std::string PointwiseNode::getResultNamesAndTypesAsm() const {
                        getOperandTypesAsm(), /* {3} */                         \
                        getResultTypesAsm(),  /* {4} */                         \
                        permuteOUT0,          /* {5} */                         \
-                       #OPIR,                /* {6} */                         \
+                       OPIR,                 /* {6} */                         \
                        getName()             /* {7} */                         \
     );                                                                         \
   }
@@ -1228,7 +1260,7 @@ inline std::string PointwiseNode::getResultNamesAndTypesAsm() const {
                        getOperandTypesAsm(), /* {4} */                         \
                        getResultTypesAsm(),  /* {5} */                         \
                        permuteOUT0,          /* {6} */                         \
-                       #OPIR,                /* {7} */                         \
+                       OPIR,                 /* {7} */                         \
                        getName()             /* {8} */                         \
     );                                                                         \
   }
@@ -1240,17 +1272,20 @@ inline std::string PointwiseNode::emitNodePreAsm() const {
   // getPermuteOpsAsm() with unique suffixes to prevent SSA redefinitions
   // when multiple operations use the same tensors.
   std::string permuteIN0 =
-      getPermuteOpsAsm(pointwiseAttr.getIN_0(), "permute_IN_0", uniqueSSASuffix,
+      getPermuteOpsAsm(pointwiseAttr.getIN_0(), kAsmPermuteIn0, uniqueSSASuffix,
                        /*isInput=*/true);
-  std::string permuteIN1 =
-      pointwiseAttr.getIN_1()
-          ? getPermuteOpsAsm(pointwiseAttr.getIN_1(), "permute_IN_1",
-                             uniqueSSASuffix, /*isInput=*/true)
-          : "";
-  std::string permuteOUT0 =
-      getPermuteOpsAsm(pointwiseAttr.getOUT_0(), "permute_OUT_0",
-                       uniqueSSASuffix, /*isInput=*/false);
+  std::string permuteIN1;
+  if (pointwiseAttr.getIN_1()) {
+    permuteIN1 =
+        getPermuteOpsAsm(pointwiseAttr.getIN_1(), kAsmPermuteIn1,
+                         uniqueSSASuffix, /*isInput=*/true);
+  }
+  std::string permuteOUT0 = getPermuteOpsAsm(pointwiseAttr.getOUT_0(),
+                                             kAsmPermuteOut0, uniqueSSASuffix,
+                                             /*isInput=*/false);
 
+  // We use "static constexpr char[]" below to
+  // prevent ODR violations with the anonymous .str globals.
   static constexpr char kUnaryTorchSchema[] = R"(
 {0}
 {1} = {6} {2} : {3} -> {4}
@@ -1280,24 +1315,23 @@ inline std::string PointwiseNode::emitNodePreAsm() const {
   FUSILLI_DECLARE_BINARY_POINTWISE_EMITTER(PWOP, kSubAddSchema, OPIR)
 
   switch (pointwiseAttr.getMode()) {
-    FUSILLI_DECLARE_UNARY_TORCH_EMITTER(CEIL, torch.aten.ceil)
-    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_EQ, torch.aten.eq.Tensor)
-    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_LT, torch.aten.lt.Tensor)
-    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_LE, torch.aten.le.Tensor)
-    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_GT, torch.aten.gt.Tensor)
-    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_GE, torch.aten.ge.Tensor)
-    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_NEQ, torch.aten.ne.Tensor)
-    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(DIV, torch.aten.div.Tensor)
-    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(MUL, torch.aten.mul.Tensor)
-    FUSILLI_DECLARE_UNARY_TORCH_EMITTER(RELU_FWD, torch.aten.relu)
-    FUSILLI_DECLARE_UNARY_TORCH_EMITTER(SIGMOID_FWD, torch.aten.sigmoid)
-    FUSILLI_DECLARE_UNARY_TORCH_EMITTER(TANH_FWD, torch.aten.tanh)
-    FUSILLI_DECLARE_SUB_ADD_TORCH_EMITTER(ADD, torch.aten.add.Tensor)
-    FUSILLI_DECLARE_SUB_ADD_TORCH_EMITTER(SUB, torch.aten.sub.Tensor)
+    FUSILLI_DECLARE_UNARY_TORCH_EMITTER(CEIL, kAsmTorchOpCeil)
+    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_EQ, kAsmTorchOpCmpEq)
+    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_LT, kAsmTorchOpCmpLt)
+    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_LE, kAsmTorchOpCmpLe)
+    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_GT, kAsmTorchOpCmpGt)
+    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_GE, kAsmTorchOpCmpGe)
+    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(CMP_NEQ, kAsmTorchOpCmpNeq)
+    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(DIV, kAsmTorchOpDiv)
+    FUSILLI_DECLARE_BINARY_TORCH_EMITTER(MUL, kAsmTorchOpMul)
+    FUSILLI_DECLARE_UNARY_TORCH_EMITTER(RELU_FWD, kAsmTorchOpRelu)
+    FUSILLI_DECLARE_UNARY_TORCH_EMITTER(SIGMOID_FWD, kAsmTorchOpSigmoid)
+    FUSILLI_DECLARE_UNARY_TORCH_EMITTER(TANH_FWD, kAsmTorchOpTanh)
+    FUSILLI_DECLARE_SUB_ADD_TORCH_EMITTER(ADD, kAsmTorchOpAdd)
+    FUSILLI_DECLARE_SUB_ADD_TORCH_EMITTER(SUB, kAsmTorchOpSub)
 
   default:
-    assert(false && "Unsupported pointwise mode");
-    return "";
+    __builtin_unreachable();
   }
 }
 
@@ -1350,13 +1384,15 @@ inline std::string ReductionNode::emitNodePreAsm() const {
   // Emit the reduction dimension list
   std::ostringstream dimListOss;
   std::string suffix = reductionAttr.getName();
-  dimListOss << getListOfIntOpsAsm(reductionDims, "reduction_dims", suffix);
+  dimListOss << getListOfIntOpsAsm(reductionDims, kAsmReductionDims, suffix);
 
   std::string permuteX =
-      getPermuteOpsAsm(xT, kPermuteX, suffix, /*isInput=*/true);
+      getPermuteOpsAsm(xT, kAsmPermuteX, suffix, /*isInput=*/true);
   std::string permuteY =
-      getPermuteOpsAsm(yT, kPermuteY, suffix, /*isInput=*/false);
+      getPermuteOpsAsm(yT, kAsmPermuteY, suffix, /*isInput=*/false);
 
+  // We use "static constexpr char[]" below to
+  // prevent ODR violations with the anonymous .str globals.
   switch (reductionAttr.getMode()) {
   case ReductionAttr::Mode::SUM: {
     static constexpr char schema[] = R"(
@@ -1420,8 +1456,7 @@ inline std::string ReductionNode::emitNodePreAsm() const {
     );
   }
   default:
-    assert(false && "Unsupported reduction mode");
-    return "";
+    __builtin_unreachable();
   }
 }
 

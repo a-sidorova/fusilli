@@ -161,6 +161,28 @@ public:
 
     return ok();
   }
+
+private:
+  // SSA name prefixes for permute operations on tensors in ASM emitter
+  // implementation. Declared as named `static constexpr` variables to prevent
+  // ODR-violation errors.
+  static constexpr char kAsmPermuteIn0[] = "permute_IN_0";
+  static constexpr char kAsmPermuteIn1[] = "permute_IN_1";
+  static constexpr char kAsmPermuteOut0[] = "permute_OUT_0";
+  static constexpr char kAsmTorchOpCeil[] = "torch.aten.ceil";
+  static constexpr char kAsmTorchOpCmpEq[] = "torch.aten.eq.Tensor";
+  static constexpr char kAsmTorchOpCmpLt[] = "torch.aten.lt.Tensor";
+  static constexpr char kAsmTorchOpCmpLe[] = "torch.aten.le.Tensor";
+  static constexpr char kAsmTorchOpCmpGt[] = "torch.aten.gt.Tensor";
+  static constexpr char kAsmTorchOpCmpGe[] = "torch.aten.ge.Tensor";
+  static constexpr char kAsmTorchOpCmpNeq[] = "torch.aten.ne.Tensor";
+  static constexpr char kAsmTorchOpDiv[] = "torch.aten.div.Tensor";
+  static constexpr char kAsmTorchOpMul[] = "torch.aten.mul.Tensor";
+  static constexpr char kAsmTorchOpRelu[] = "torch.aten.relu";
+  static constexpr char kAsmTorchOpSigmoid[] = "torch.aten.sigmoid";
+  static constexpr char kAsmTorchOpTanh[] = "torch.aten.tanh";
+  static constexpr char kAsmTorchOpAdd[] = "torch.aten.add.Tensor";
+  static constexpr char kAsmTorchOpSub[] = "torch.aten.sub.Tensor";
 };
 } // namespace fusilli
 
