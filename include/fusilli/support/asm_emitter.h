@@ -1276,9 +1276,8 @@ inline std::string PointwiseNode::emitNodePreAsm() const {
                        /*isInput=*/true);
   std::string permuteIN1;
   if (pointwiseAttr.getIN_1()) {
-    permuteIN1 =
-        getPermuteOpsAsm(pointwiseAttr.getIN_1(), kAsmPermuteIn1,
-                         uniqueSSASuffix, /*isInput=*/true);
+    permuteIN1 = getPermuteOpsAsm(pointwiseAttr.getIN_1(), kAsmPermuteIn1,
+                                  uniqueSSASuffix, /*isInput=*/true);
   }
   std::string permuteOUT0 = getPermuteOpsAsm(pointwiseAttr.getOUT_0(),
                                              kAsmPermuteOut0, uniqueSSASuffix,

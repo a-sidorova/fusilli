@@ -43,6 +43,9 @@ enum class DataType : uint8_t {
 #undef DEFINE_ENUM
 };
 
+// To prevent ODR violations, we hide all static global variables below
+// inside inline accessor functions.
+
 // Map from Fusilli types to MLIR types.
 inline const std::unordered_map<DataType, std::string> &
 getDataTypeToMlirTypeAsm() {

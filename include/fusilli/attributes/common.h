@@ -27,6 +27,8 @@ enum class NormFwdPhase : uint8_t {
   INFERENCE
 };
 
+// To prevent ODR violations, we hide static global variable
+// inside inline accessor function.
 inline const std::unordered_map<NormFwdPhase, std::string> &
 getNormFwdPhaseToStr() {
   static const std::unordered_map<NormFwdPhase, std::string> map = {

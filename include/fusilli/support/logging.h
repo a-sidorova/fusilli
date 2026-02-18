@@ -70,6 +70,8 @@ enum class [[nodiscard]] ErrorCode : uint8_t {
   FileSystemFailure,
 };
 
+// To prevent ODR violations, we hide static global variable
+// inside inline accessor function.
 inline const std::unordered_map<ErrorCode, std::string> &getErrorCodeToStr() {
   static const std::unordered_map<ErrorCode, std::string> map = {
       {ErrorCode::OK, "OK"},

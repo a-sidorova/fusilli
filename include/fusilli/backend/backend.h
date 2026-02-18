@@ -42,6 +42,8 @@ enum class Backend : uint8_t {
   AMDGPU,
 };
 
+// To prevent ODR violations, we hide all static global variables below
+// inside inline accessor functions.
 inline const std::unordered_map<Backend, std::string> &getBackendToStr() {
   static const std::unordered_map<Backend, std::string> map = {
       {Backend::CPU, "CPU"},
@@ -58,15 +60,6 @@ inline const std::unordered_map<Backend, bool> &getBackendExecuteAsync() {
   return map;
 }
 
-// Stream operator for Backend.
-inline std::ostream &operator<<(std::ostream &os, const Backend &backend) {
-  if (getBackendToStr().contains(backend)) // C++20
-    os << getBackendToStr().at(backend);
-  else
-    os << "UNKNOWN_BACKEND";
-  return os;
-}
-
 // Map from backend to IREE HAL driver name.
 inline const std::unordered_map<Backend, const char *> &getHalDriver() {
   static const std::unordered_map<Backend, const char *> map = {
@@ -74,6 +67,15 @@ inline const std::unordered_map<Backend, const char *> &getHalDriver() {
       {Backend::AMDGPU, "hip"},
   };
   return map;
+}
+
+// Stream operator for Backend.
+inline std::ostream &operator<<(std::ostream &os, const Backend &backend) {
+  if (getBackendToStr().contains(backend)) // C++20
+    os << getBackendToStr().at(backend);
+  else
+    os << "UNKNOWN_BACKEND";
+  return os;
 }
 
 // Maps GPU marketing name to IREE SKU target name.
